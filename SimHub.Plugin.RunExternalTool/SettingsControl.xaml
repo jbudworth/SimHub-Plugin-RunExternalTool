@@ -1,0 +1,149 @@
+<UserControl x:Class="SimHub.Plugin.RunExternalTool.SettingsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:styles="clr-namespace:SimHub.Plugins.Styles;assembly=SimHub.Plugins"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900">
+    <UserControl.Resources>
+        <Style TargetType="TextBlock" x:Key="Header">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style TargetType="TextBlock" x:Key="Hint">
+            <Setter Property="Opacity" Value="0.7"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Padding" Value="3"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Run External Tool" Style="{StaticResource Header}" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                <styles:SHButtonSecondary Height="28" VerticalAlignment="Center" Margin="0,0,8,0" Click="Export_Click" ToolTip="Save all commands to a file">Export</styles:SHButtonSecondary>
+                <styles:SHButtonSecondary Height="28" VerticalAlignment="Center" Margin="0,0,8,0" Click="Import_Click" ToolTip="Replace all commands with ones loaded from a file">Import</styles:SHButtonSecondary>
+                <styles:SHButtonPrimary Height="28" VerticalAlignment="Center" Click="Save_Click">Save settings</styles:SHButtonPrimary>
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Grid.Row="1" Style="{StaticResource Hint}">
+            Each command below becomes a separate Action in SimHub's "Controls and events" mapper
+            (named "RunExternalTool.&lt;command name&gt;"). Open Settings &gt; Controls and events &gt;
+            Add new, pick either an input Control (keyboard key, joystick button) or an Event, then
+            choose this action as the output. Arguments support {value} (the value passed by the
+            trigger) and {timestamp}.
+        </TextBlock>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBlock Text="Wait-for-exit timeout (ms):" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBox x:Name="WaitForExitTimeoutMsBox" Width="80"
+                     ToolTip="Only applies to commands with 'Wait for exit' checked. Once that time elapses the plugin stops waiting and moves on (the process itself is not killed). 0 = wait indefinitely."/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="SlotsItemsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,12">
+                            <styles:SHSection Title="{Binding Name}" ShowSeparator="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Column="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+
+                                    <Label Grid.Row="0" Grid.Column="0" Content="Name"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <Label Grid.Row="1" Grid.Column="0" Content="Executable"/>
+                                    <Grid Grid.Row="1" Grid.Column="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Text="{Binding ExecutablePath, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <styles:SHButtonSecondary Grid.Column="1" Height="28" VerticalAlignment="Center" Click="BrowseExecutable_Click">Browse...</styles:SHButtonSecondary>
+                                    </Grid>
+
+                                    <Label Grid.Row="2" Grid.Column="0" Content="Arguments"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <Label Grid.Row="3" Grid.Column="0" Content="Working dir"/>
+                                    <Grid Grid.Row="3" Grid.Column="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Leave blank to use the executable's own folder"/>
+                                        <styles:SHButtonSecondary Grid.Column="1" Height="28" VerticalAlignment="Center" Click="BrowseWorkingDirectory_Click">Browse...</styles:SHButtonSecondary>
+                                    </Grid>
+
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="4">
+                                        <CheckBox Content="Enabled" IsChecked="{Binding Enabled}" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                        <CheckBox Content="Run hidden" IsChecked="{Binding RunHidden}" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                        <CheckBox Content="Wait for exit" IsChecked="{Binding WaitForExit}" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                        <CheckBox Content="Use shell execute" IsChecked="{Binding UseShellExecute}" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                        <CheckBox Content="Ignore re-triggers while running" IsChecked="{Binding IgnoreRetriggerWhileRunning}"
+                                                  Margin="0,0,15,0" VerticalAlignment="Center"
+                                                  ToolTip="If triggered again before the previous run has finished, the new trigger is ignored instead of starting another instance."/>
+                                        <TextBlock Text="Minimum seconds between runs:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBox Text="{Binding DebounceSeconds, UpdateSourceTrigger=PropertyChanged}" Width="50"
+                                                 ToolTip="Any trigger within this many seconds of the previous run's start is ignored. 0 = no limit."/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                    <TextBlock Text="{Binding ActionName}" FontSize="10" Opacity="0.6" TextWrapping="Wrap" Width="150"/>
+                                    <styles:SHButtonSecondary Height="28" VerticalAlignment="Center" Click="TestRun_Click" Tag="{Binding}">Test run</styles:SHButtonSecondary>
+                                    <styles:SHButtonSecondary Height="28" VerticalAlignment="Center" Click="RemoveSlot_Click" Tag="{Binding}">Remove</styles:SHButtonSecondary>
+                                </StackPanel>
+                            </Grid>
+                            </styles:SHSection>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,10,0,0">
+            <styles:SHButtonSecondary Height="28" VerticalAlignment="Center" Click="AddSlot_Click">Add command</styles:SHButtonSecondary>
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="10,0,0,0" Opacity="0.8"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
