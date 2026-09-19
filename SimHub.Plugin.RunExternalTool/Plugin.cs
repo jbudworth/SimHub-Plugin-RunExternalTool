@@ -11,7 +11,7 @@ namespace SimHub.Plugin.RunExternalTool
 {
     [PluginName("Run External Tool")]
     [PluginDescription("Runs an external executable or script when triggered from a Control (button/key) or an Event, with configurable arguments.")]
-    [PluginAuthor("jbudworth")]
+    [PluginAuthor("Claude.ai")]
     public class Plugin : IPlugin, IDataPlugin, IWPFSettingsV2
     {
         public const string SettingsKey = "RunExternalToolPluginSettings";
