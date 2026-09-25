@@ -140,7 +140,11 @@ namespace SimHub.Plugin.RunExternalTool
     {
         public List<CommandSlot> Slots { get; set; } = new List<CommandSlot>();
 
-        /// <summary>How long to wait (ms) before killing a process when WaitForExit is set, 0 = no timeout.</summary>
+        /// <summary>
+        /// How long to wait (ms) for a process to exit when WaitForExit is set
+        /// before giving up on the wait (the process itself is not killed).
+        /// 0 = wait indefinitely.
+        /// </summary>
         public int WaitForExitTimeoutMs { get; set; } = 0;
     }
 

@@ -16,6 +16,13 @@ namespace SimHub.Plugin.RunExternalTool
         {
             InitializeComponent();
             _plugin = plugin;
+
+            // WPF bindings default to en-US regardless of OS locale, so on e.g. a
+            // German system "1,5" typed into the debounce box would parse as 15.
+            // Use the actual OS culture for binding conversions instead.
+            Language = System.Windows.Markup.XmlLanguage.GetLanguage(
+                System.Globalization.CultureInfo.CurrentCulture.IetfLanguageTag);
+
             SlotsItemsControl.ItemsSource = _plugin.Settings.Slots;
             WaitForExitTimeoutMsBox.Text = _plugin.Settings.WaitForExitTimeoutMs.ToString();
         }
@@ -28,13 +35,25 @@ namespace SimHub.Plugin.RunExternalTool
                 return;
             }
 
-            var slot = new CommandSlot { Name = $"Command {_plugin.Settings.Slots.Count + 1}" };
+            // Pick the first "Command N" whose action name isn't already taken, so a
+            // remove-then-add sequence can't silently create a duplicate action name
+            // (duplicates lose the race: only one of them gets registered).
+            var usedActionNames = new System.Collections.Generic.HashSet<string>(_plugin.Settings.Slots.Select(s => s.ActionName));
+            CommandSlot slot;
+            var n = _plugin.Settings.Slots.Count + 1;
+            do
+            {
+                slot = new CommandSlot { Name = $"Command {n}" };
+                n++;
+            } while (usedActionNames.Contains(slot.ActionName));
+
             _plugin.Settings.Slots.Add(slot);
             RefreshList();
 
             // Register immediately so it is usable this session. If it doesn't show
             // up yet in the Controls and events mapper, a SimHub restart will do it.
             _plugin.ReregisterAllActions();
+            _plugin.SaveSettingsNow();
 
             StatusText.Text = "Command added. Restart SimHub if it does not appear yet in Controls and events.";
         }
@@ -55,6 +74,7 @@ namespace SimHub.Plugin.RunExternalTool
                 // Drop its action registration now rather than leaving it bound to
                 // this now-removed slot's (now stale) data - see ReregisterAllActions.
                 _plugin.ReregisterAllActions();
+                _plugin.SaveSettingsNow();
 
                 StatusText.Text = "Command removed.";
             }

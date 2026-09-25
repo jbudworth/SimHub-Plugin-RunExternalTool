@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -168,6 +169,15 @@ namespace SimHub.Plugin.RunExternalTool
                 state.LastRunUtc = DateTime.UtcNow;
             }
 
+            // Launch (and, for WaitForExit commands, wait) on a background thread.
+            // RunSlot is called from SimHub's action dispatch and from the settings
+            // UI's Test run button (the WPF UI thread) - a synchronous WaitForExit
+            // there would freeze SimHub until the external tool exits.
+            Task.Run(() => LaunchSlotProcess(slot, state, triggerValue));
+        }
+
+        private void LaunchSlotProcess(CommandSlot slot, SlotRuntimeState state, string triggerValue)
+        {
             try
             {
                 string arguments = ExpandTokens(slot.Arguments, triggerValue);
